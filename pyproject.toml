@@ -2,7 +2,7 @@
 name = "aio-bluesky-kafka"
 version = "0.1.0"
 description = "an asyncio adapter for running a bluesky-kafka consumer"
-authors = ["Alex Palma <dev@alexpalma.io>"]
+authors = ["Alex Palma <alexp@ansto.gov.au>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
