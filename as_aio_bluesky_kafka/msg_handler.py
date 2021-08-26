@@ -1,69 +1,3 @@
-"""
-brainstorming.
-main thread
-main coroutine
-creates thread safe queue object
-creates thread safe thread event object "STOP_NOW_PLEASE_BCTHREAD"
-creates separate thread and joins it with the queue and thread event object "STOP_NOW_PLEASE_BCTHREAD"
-we'll call the other thread BCThread
-create a separate coroutine, we'll call msg_handler by
-initializing the msg_handler to look at the queue,
-and to call a callback whenever it gets a message in the queue
-now await some asyncio event (it was passed to us) say "FASTAPI_SHUTTING_DOWN"
-[BCThread now subscribes to the kafka queue and adds messages it unpacks into
-the queue]
-[simultaneously the message handler coroutine is listening for msgs added to the
-queue and when it gets a new one calls the provided callback with that message]
-[asyncio event is set]
-kill the BCThread by setting the thread safe thread event object "STOP_NOW_PLEASE_BCTHREAD"
-cancel the msg_handler coroutine by its reference we've maintained
-end finish.
-
----
-
-This module will be an asyncio wrapper around the bluesky-kafka BlueskyConsumer
-which is blocking.
-
-This module can be used like so:
-# import it
-from aio_bluesky_kafka_msg_handler import msg_handler
-
-# when we get a bluesky document from kafka, we'll probably want to do something
-# with it, lets be boring and just print it to the console, so we define a call
-# back function that will take two args, first being the type of bluesky doc
-# (that is, 'start', 'descriptor', 'event', etc)
-# second being the body of the document itself:
-def msg_cb(doc_type, doc):
-    print("got a ", doc_type, " document:")
-    print(doc)
-
-# then we create an asyncio event object that we can later use elsewhere in our
-# code to signal to this message handler that it should close up and finish:
-shutdown_event_object = asyncio.Event(loop=asyncio.get_event_loop())
-
-# we also need to know how to connect to kafka to get what we want:
-kafka_topic = "queueserver"
-kafka_group_prefix = "group"
-kafka_bootstrap_servers = 'localhost:9092'
-
-# then we're ready to kick off this as a coroutine:
-asyncio.ensure_future(
-    msg_handler(
-        msg_cb,
-        shutdown_event_object,
-        kafka_topic,
-        kafka_group_prefix,
-        kafka_bootstrap_servers
-        )
-    )
-
-# then later on if something happens (like a fastapi shutdown procedure) we can
-# stop this message handler (including the thread it created) by doing this:
-
-shutdown_event_object.set()
-
-
-"""
 import asyncio
 import threading
 import queue
@@ -79,7 +13,6 @@ def bc_thread_func(msg_queue,
     """ This runs as a separate thread, because listening to kafka is
     blocking """
     def add_to_queue(name, doc):
-        print(f"BCThread: just added a \"{name}\" doc to the thread queue")  # debugging
         msg_queue.put([name, doc])
 
     def continue_polling():
@@ -211,6 +144,8 @@ async def main():
 
     # simulate the rest of the program doing its thing for a bit...
     await asyncio.sleep(10)
+    # during this time you should arrange for some bluesky messages to
+    # be emitted to the kafka queue if you want to see any output.
     # then simulate normal shutdown:
     shutdown_event_object.set()
     await msg_handler_task
@@ -223,7 +158,7 @@ if __name__ == "__main__":
 """
 example to start:
 
-$ KAFKA_TOPIC=queueserver python kafka-bluesky-consumer-demo-with-parsing.py
+$ KAFKA_TOPIC=queueserver python msg_handler.py
 
 """
 
