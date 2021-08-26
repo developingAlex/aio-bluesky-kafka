@@ -1,4 +1,4 @@
-# aio bluesky kafka
+# as aio bluesky kafka
 
 ## About
 
@@ -18,19 +18,25 @@ setup and initialisation:
 
 ```
 import asyncio
-from aio_bluesky_kafka import msg_handler
+from as_aio_bluesky_kafka import msg_handler
 
+# we need to first know the details of the kafka queue we want:
 KAFKA_TOPIC = "queueserver"
 KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
 KAFKA_CONSUMER_GROUP_PREFIX = "group"
 
+# if we need to signal to multiple coroutines that the app is
+# shutting down, we can use an event:
 shutdown_event_object = asyncio.Event(loop=asyncio.get_event_loop())
 
+# this is the callback that fires with every received kafka doc:
 async def handle_doc_cb(name, doc):
     print("handling a doc!")
     print(f"this is a {name} doc. This is its contents:")
     print(doc)
 
+# here is where we start it listening to kafka in a separate
+# coroutine and thread:
 msg_handler_task = asyncio.ensure_future(
     msg_handler(
         handle_doc_cb,
@@ -43,7 +49,7 @@ msg_handler_task = asyncio.ensure_future(
 
 ```
 
-at this point every time a new kafka message is received, your handle_doc_cb
+at this point every time a new kafka message is received, your `handle_doc_cb`
 callback function will be executed with the document.
 
 if you want to stop your app gracefully you can arrange for the handler to
