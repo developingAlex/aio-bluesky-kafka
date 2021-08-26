@@ -121,7 +121,7 @@ async def queue_watcher(queue_obj, cb):
         if doc == "finish up now you hear?":
             print("queue_watcher stopping now as told")
             break
-        cb(doc[0], doc[1])
+        await cb(doc[0], doc[1])
 
 
 async def msg_handler(
