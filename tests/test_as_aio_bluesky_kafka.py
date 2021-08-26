@@ -1,4 +1,4 @@
-from aio_bluesky_kafka import __version__
+from as_aio_bluesky_kafka import __version__
 
 
 def test_version():
