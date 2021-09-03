@@ -150,10 +150,11 @@ async def main():
     shutdown_event_object.set()
     await msg_handler_task
     print("reached end of main()")
+    return 1
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(asyncio.gather(main()))
 
 """
 example to start:
